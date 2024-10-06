@@ -1,0 +1,39 @@
+name: Code Scanning
+
+on:
+  workflow_call:
+    inputs:
+      bearer:
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  bearer:
+    if: ${{ inputs.bearer }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Report
+        id: report
+        uses: bearer/bearer-action@v2
+        with:
+          format: sarif
+          output: results.sarif
+          exit-code: 0
+
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif
